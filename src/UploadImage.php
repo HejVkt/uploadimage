@@ -9,6 +9,7 @@ namespace Dan\UploadImage;
 use Illuminate\Filesystem\Filesystem as File;
 use Spatie\Glide\GlideImage;
 use Dan\UploadImage\Exceptions\UploadImageException;
+use Illuminate\Support\Str;
 
 class UploadImage
 {
@@ -426,7 +427,7 @@ class UploadImage
      */
     public function generateNewName($contentName, $ext)
     {
-        $ind = time() . '_' . mb_strtolower(str_random(8));
+        $ind = time() . '_' . mb_strtolower(Str::random(8));
 
         // New file name.
         $newName = $contentName . '_' . $ind . '.' . $ext;
