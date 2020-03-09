@@ -113,11 +113,12 @@ class UploadImage
      * @param bool $watermark bool watermark status (by default = false)
      * @param bool $video if true then add watermark with video player image to an image
      * @param bool $thumbnails create thumbnails for original image
+     * @param bool $isConvertToWebp convert to Webp
      *
      * @return object image
      * @throws UploadImageException
      */
-    public function upload($file, $contentName, $watermark = false, $video = false, $thumbnails = false, $size = false)
+    public function upload($file, $contentName, $watermark = false, $video = false, $thumbnails = false, $size = false, $isConvertToWebp = false)
     {
         //$thumbnails = $this->thumbnail_status;
 
@@ -161,13 +162,13 @@ class UploadImage
         // If need make thumbnails.
         if ($thumbnails) {
             // If exist array with size
-            if ($size && is_array($size)) 
+            if ($size && is_array($size))
             {
                 $this->thumbnails = $size;
             }
 
             // Create thumbnails.
-            $this->createThumbnails($imagePath, $originalPath, $newName);
+            $this->createThumbnails($imagePath, $originalPath, $newName, $isConvertToWebp);
         }
 
         // Url to image.
@@ -502,7 +503,7 @@ class UploadImage
      * @param $originalPath string path to image folder with file name
      * @param $newName string image name
      */
-    public function createThumbnails($imagePath, $originalPath, $newName)
+    public function createThumbnails($imagePath, $originalPath, $newName, $isConvertToWebp)
     {
         // Get all thumbnails and save it.
         foreach ($this->thumbnails as $thumbnailSize) {
@@ -534,10 +535,24 @@ class UploadImage
 
             $glideParams = array_merge($this->glide_properties, $glideParams);
 
+//            dd($originalPath, $savedImagePathFile);
             GlideImage::create($originalPath)
                 ->modify($glideParams)
                 ->save($savedImagePathFile);
+
+            if($isConvertToWebp) {
+                $content = imagecreatefromstring(file_get_contents($savedImagePathFile));
+                $newFilePath = $savedImagePathFile . '.webp';
+                imagewebp($content, $newFilePath, 75);
+                imagedestroy($content);
+
+                GlideImage::create($newFilePath)
+                    ->modify($glideParams)
+                    ->save($newFilePath);
+            }
+
         }
+
     }
 
     /**
